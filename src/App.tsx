@@ -7,6 +7,7 @@ function App() {
   const [str, setStr] = useState("")
   const [hasErr, setHasErr] = useState(false)
 
+  /* easy examine task */
   const handleClickZip = () => {
     setHasErr(false)
     if (typeof str !== "string") {
@@ -20,7 +21,7 @@ function App() {
     let counter = 0
     let prevChar: string = str[0]
     let temp = ""
-    str.split("").forEach((char, index) => {
+    str.split("").forEach((char) => {
       if (prevChar === char) {
         counter++
       } else {
@@ -39,8 +40,8 @@ function App() {
 
   const handleClickUnZip = () => {
     let stateMachine: "begin" | "counter" | "mark" | "char" | "unzip" = "begin"
-    let repeatCounter:string = ""
-    let repeatChar:string = result[0]
+    let repeatCounter: string = ""
+    let repeatChar: string = result[0]
     let tempUnZip = ""
     try {
       if (!result.length) return
@@ -111,9 +112,62 @@ function App() {
     } catch (e: unknown) {
       setHasErr(true)
     }
-
-
   }
+  /* */
+
+  /* Harder examine task , look at dev tools console*/
+  type Person = { name: string; age: number }
+  type InputObj = { func: Function, args: any, context: any }
+  const store: Map<Symbol, InputObj> = new Map<Symbol, InputObj>();
+  const saveFunc = (func: Function, context: any, ...args: any[]) => {
+    const name = Symbol(`${func.name}:${args.toString()}`)
+    store.set(name, { func, args, context })
+    return name
+  }
+  const callFunc = (name: Symbol) => {
+    const current = store.get(name)
+    return current?.func.apply(current.context, current.args)
+  }
+
+
+  const f1 = (...args: any[]) => {
+    return args
+  }
+  const f2 = (x: number, y: number): number => {
+    return x + y
+  }
+  const f3 = (person: Person) => {
+    return person
+  }
+  function f4(this: Person) {
+    this.name += "Mutated"
+    this.age += 100
+    return this
+  }
+
+
+  const p1: Person = {
+    name: "Peter",
+    age: 50
+  }
+
+  const p2: Person = {
+    name: "Joe",
+    age: 77
+  }
+
+  const s21 = saveFunc(f2, null, 2, 3)
+  const s22 = saveFunc(f2, null, 10, 12)
+  const s31 = saveFunc(f3, null, { name: "Alf", age: 12 })
+  saveFunc(f1, null, callFunc(s21), callFunc(s22))
+  saveFunc(f1, null, callFunc(s31))
+  saveFunc(f4, p1)
+  saveFunc(f4, p2)
+
+  store.forEach((o, key) => {
+    console.log(`call ${key.toString()} -> result: `, callFunc(key))
+  })
+  /* */
 
   return (
     <div className="App">
